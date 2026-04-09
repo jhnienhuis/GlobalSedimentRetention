@@ -1,0 +1,54 @@
+%% trend with QRiver (1:1)
+function Fig3_QRiver
+load('D:\Drive\github\GlobalDeltaChange\GlobalDeltaData.mat','QRiver_prist','QRiver_bedload','delta_name','Discharge_prist','BasinID2')
+load('D:\Drive\2025 Delta SedimentRetention\code\GlobalDeltaArea.mat','delta_area');
+QRiver = QRiver_bedload+QRiver_prist;
+
+fr = get_retention(QRiver,Discharge_prist,delta_area,7000,1600);
+fr_dist = get_retention_montecarlo(QRiver,Discharge_prist,delta_area,7000,1600);
+f = 365*24*3600./1600; %convert kg/s to m3/yr
+src = delta_area>0 & (f*QRiver>1e5) & fr<2;
+
+%load data from actual deltas
+kf_data = readtable('SI_SedimentRetentionLiterature.xlsx');
+[~,kf_xx] = ismember(kf_data.BasinID2,BasinID2);
+
+x = min(1e9-eps,(f.*QRiver));
+
+tiledlayout('flow')
+nexttile
+scatter(x(src),fr(src).*x(src),...
+    max(10,sqrt(QRiver(src))),[0.8 0.8 0.8],'filled','MarkerEdgeColor','k') %log10(sqrt(QRiver_prist(idx)))
+set(gca,'XScale','log','YScale','log','XLim',[1e5 1e9],'YLim',[1e1 1e9],'box','on')
+hold on, plot([10^1 10^9],[10^1 10^9],'--k','LineWidth',1)
+%colormap(flipud(cbrewer('div', 'RdYlBu', 64)))
+%
+
+x_edg = logspace(5,9,11);
+[y] = discretize(x(src),x_edg);
+f_y = accumarray(y,fr(src).*x(src),[],@mean);
+%f_y_std = accumarray(y,fr(idx).*x(idx),[],@(x) (nanstd(x)./sqrt(numel(x))));
+f_y_std = accumarray(y,var(fr_dist(src,:).*x(src),1,2),[],@(x) (sqrt(mean(x))./sqrt(numel(x))));
+
+
+errorbar([x_edg(1:end-1)+diff(x_edg(1:end))/2],f_y(1:end),f_y_std(1:end),'-or','MarkerFaceColor','r'),
+set(gca,'XScale','log')
+
+xlabel('fluvial sediment supply (m3/yr)'), ylabel('delta plain deposition (m3/yr)')
+
+%add observations!
+scatter(x(kf_xx),kf_data.retention_from_riverflux.*x(kf_xx),max(10,sqrt(QRiver(kf_xx))),'r','filled','MarkerEdgeColor','k'); %log10(sqrt(QRiver_prist(field_idx)))
+text(x(kf_xx),kf_data.retention_from_riverflux.*x(kf_xx),kf_data.DeltaName,'FontSize',8)
+
+
+nexttile
+f_y = accumarray(y,fr(src),[],@mean);
+f_y_std = accumarray(y,var(fr_dist(src,:),1,2),[],@(x) (sqrt(mean(x))./sqrt(numel(x))));
+errorbar([x_edg(1:end-1)+diff(x_edg(1:end))/2],f_y(1:end),f_y_std(1:end),'-or','MarkerFaceColor','r'),
+
+set(gca,'XScale','log','XLim',[1e5 1e9],'YLim',[0 1],'box','on')
+
+
+set(gcf, 'Units', 'Centimeters', 'OuterPosition', [0, 0, 10, 10]);
+set(gca, 'FontSize', 8,'FontName','Helvetica')
+saveas(gcf,'Fig3_QRiver.svg')

@@ -21,7 +21,7 @@ load('D:\Drive\2026 Delta SedimentRetention\code\GlobalDeltaArea.mat','delta_are
 %delta_area(area_edmonds(area_edmonds>0)) = a.GeomoprhicArea(area_edmonds>0).*1e6;
 %save GlobalDeltaArea delta_area BasinID2
 
-QRiver = (QRiver_prist+QRiver_bedload);
+QRitver = (QRiver_prist+QRiver_bedload);
 f = 365*24*3600./1600; %convert kg/s to m3/yr
 src = (f*QRiver)>1e5 & delta_area>1e4;
 sum(src)

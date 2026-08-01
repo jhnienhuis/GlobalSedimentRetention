@@ -1,7 +1,7 @@
 clr
 load('D:\Drive\github\GlobalDeltaChange\GlobalDeltaData.mat','QTide','QWave','TidalAmp','QRiver_prist','delta_name','QRiver_dist','Discharge_prist','BasinID2','QRiver_bedload')
 %load('D:\Drive\github\GlobalDeltaSeaLevel\export_data\GlobalDeltaArea.mat','delta_area')
-load('D:\Drive\2026 Delta SedimentRetention\code\GlobalDeltaArea.mat','delta_area');
+load('D:\Drive\2026 Delta SedimentRetention\GlobalSedimentRetention\GlobalDeltaArea.mat','delta_area');
 
 QRiver = QRiver_prist+QRiver_bedload;
 fr = get_retention(QRiver,Discharge_prist,delta_area,7000,1600);
@@ -15,7 +15,7 @@ src = (f*QRiver)>1e5 & delta_area>1e4;
 
 sum(src) %total nr of deltas we consider
 
-%total delta area in analysis compared to global
+%total delta sediment flux in analysis compared to global
 sum(QRiver(src))./sum(QRiver)
 
 
@@ -23,13 +23,17 @@ sum(QRiver(src))./sum(QRiver)
 sum(fr(src).*QRiver(src))./sum(QRiver(src))
 sqrt(sum(var(fr_dist(src,:).*QRiver(src),1,2)))./sum(QRiver(src))
 
-%sediment flux compared to global, adjust to latest science
-Qglobal = 11e12/(365*24*3600); %kg/sec
-sum(fr(src).*QRiver(src)).*Qglobal./sum(QRiver).*365*3600*24/1e12 %GT/yr
+%sediment flux compared to global
+sum(fr(src).*QRiver(src)).*365*3600*24/1e12 %GT/yr
+
+sum(fr(src).*QRiver(src)).*365*3600*24./1600 %m3/yr
+
+
+
 
 %mean retention
 mean(fr(src)), sqrt(mean(var(fr_dist(src,:),1,2)))./sqrt(sum(src))
-
+median(fr(src))
 
 %most efficient morphology
 [~,mor] = max([QRiver,QTide,QWave],[],2);
@@ -88,6 +92,21 @@ act_margin = regions==15 | regions==2 | regions==4 | regions==13;
 
 sum(fr(act_margin &src).*QRiver(act_margin &src))./sum(QRiver(act_margin &src))
 sum(fr(~act_margin & src).*QRiver(~act_margin & src))./sum(QRiver(~act_margin & src))
+
+% how about sediment flux?
+mean(QRiver(act_margin &src))
+mean(QRiver(~act_margin &src))
+
+%also median:
+median(fr(act_margin &src))
+median(fr(~act_margin & src))
+
+
+%control on retention (depth vs area)
+fit((log10(QRiver(src))),(log10(delta_area(src))),'poly1')
+depth = 0.08*Discharge_prist.^0.65;
+fit((log10(QRiver(src))),(log10(depth(src))),'poly1')
+
 
 %most efficient morphology
 [~,mor] = max([QRiver,QTide,QWave],[],2);

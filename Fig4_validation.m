@@ -1,7 +1,7 @@
 %% load data
 
 load('D:\Drive\github\GlobalDeltaChange\GlobalDeltaData.mat','QRiver_prist','QRiver_bedload','delta_name','Discharge_prist','BasinID2');
-load('D:\Drive\2026 Delta SedimentRetention\code\GlobalDeltaArea.mat','delta_area');
+load('D:\Drive\2026 Delta SedimentRetention\GlobalSedimentRetention\GlobalDeltaArea.mat','delta_area');
 
 %load data from actual deltas
 kf_data = readtable('SI_SedimentRetentionLiterature.xlsx');
@@ -63,6 +63,7 @@ ii=3;
 kf_nan = isnan(kf_data.deltaPlainDepth_m_);
 y = kf_data.deltaPlainDepth_m_(~kf_nan);
 x = depth(kf_xx(~kf_nan));
+
 numel(y)
 ta(ii,1) = f_lin(x,y);
 ta(ii,2) = f_cor(x,y);
@@ -133,7 +134,40 @@ set(a(6),'XLim',[1e-3 1e1],'YLim',[1e-3 1e1])
 
 %set(gcf, 'Units', 'Centimeters', 'OuterPosition', [0, 0, 18.3, 10]);
 set(gca, 'FontSize', 8,'FontName','Helvetica')
-saveas(gcf,'FigS1_validation.svg')
+saveas(gcf,'Fig4_validation.svg')
+
+
+%% assess bias
+
+t = readtable("StanleyWarne_DeltaInitiation.xlsx");
+[~,idx] = ismember(t.BasinID2,BasinID2);
+sed = QRiver(idx(idx~=0));
+scatter(log10(sed),t.CalibratedAge_calYrBP_1950_(idx~=0));
+
+kf_nan = isnan(kf_data.deltaPlainDepth_m_);
+scatter(Discharge_prist(kf_xx(~kf_nan)),kf_data.deltaPlainDepth_m_(~kf_nan))
+hold on
+fplot(@(x) (0.08*x^0.65),[0 5e4])
+fplot(@(x) (0.15*x^0.5),[0 5e4])
+fplot(@(x) (0.0025*x^1),[0 5e4])
+
+scatter(delta_area(kf_xx(~kf_nan)),kf_data.deltaPlainDepth_m_(~kf_nan))
+hold on
+fplot(@(x) (0.00002*x^0.6),[0 8e10])
+
+%test for age bias smaller deltas.
+f = 365*24*3600./1600; %convert kg/s to m3/yr
+src = (f*QRiver)>1e5 & delta_area>1e4;
+
+[fr,depth,Vdelta] = get_retention(QRiver,Discharge_prist,delta_area,7000,1600);
+fit((log10(QRiver(src))),(log10(fr(src))),'poly1')
+
+delta_age = 7000*ones(size(delta_area));
+delta_age(QRiver<prctile(QRiver,99)) = 3500;
+[fr,depth,Vdelta] = get_retention(QRiver,Discharge_prist,delta_area,delta_age,1600);
+fit((log10(QRiver(src))),(log10(fr(src))),'poly1')
+
+
 
 %% distributions and fitting:
 %{

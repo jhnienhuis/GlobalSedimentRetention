@@ -1,7 +1,7 @@
 %% trend with QRiver (1:1)
 %function Fig3_QRiver
 load('D:\Drive\github\GlobalDeltaChange\GlobalDeltaData.mat','QRiver_prist','QRiver_bedload','delta_name','Discharge_prist','BasinID2')
-load('D:\Drive\2026 Delta SedimentRetention\code\GlobalDeltaArea.mat','delta_area');
+load('D:\Drive\2026 Delta SedimentRetention\GlobalSedimentRetention\GlobalDeltaArea.mat','delta_area');
 QRiver = QRiver_bedload+QRiver_prist;
 
 fr = get_retention(QRiver,Discharge_prist,delta_area,7000,1600);
@@ -45,7 +45,8 @@ text(x(kf_xx),kf_data.retention_literature.*x(kf_xx),kf_name,'FontSize',8)
 
 
 nexttile
-f_y = accumarray(y,fr(src),[],@mean);
+f_y = accumarray(y,fr(src),[],@mean)
+accumarray(y,fr(src),[],@numel)
 f_y_std = accumarray(y,var(fr_dist(src,:),1,2),[],@(x) (sqrt(mean(x))./sqrt(numel(x))));
 errorbar([x_edg(1:end-1)+diff(x_edg(1:end))/2],f_y(1:end),f_y_std(1:end),'-or','MarkerFaceColor','r'),
 

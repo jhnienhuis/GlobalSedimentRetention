@@ -1,6 +1,6 @@
 %function Fig4_MarineControls
 load('D:\Drive\github\GlobalDeltaChange\GlobalDeltaData.mat','QRiver_prist','QRiver_bedload','delta_name','Discharge_prist','BasinID2','Hs','TidalAmp')
-load('D:\Drive\2026 Delta SedimentRetention\code\GlobalDeltaArea.mat','delta_area');
+load('D:\Drive\2026 Delta SedimentRetention\GlobalSedimentRetention\GlobalDeltaArea.mat','delta_area');
 QRiver = QRiver_bedload+QRiver_prist;
 
 fr = get_retention(QRiver,Discharge_prist,delta_area,7000,1600);
